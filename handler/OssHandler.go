@@ -25,8 +25,12 @@ func IndexHandler(w http.ResponseWriter, r *http.Request, params denco.Params) {
 func UploadFileHandler(w http.ResponseWriter, r *http.Request, params denco.Params) {
 
 	r.ParseMultipartForm(32 << 20)
-	uploadfile, header, _ := r.FormFile("file")
-
+	uploadfile, header, err := r.FormFile("file")
+	if err != nil {
+		log.Println(err.Error())
+		SendErrText(w, "不合法请求")
+		return
+	}
 	fileSize := header.Size
 	if fileSize == 0 {
 		SendErrText(w, "请选择上传的文件")
@@ -60,7 +64,6 @@ func sendFile(w http.ResponseWriter, r *http.Request, params denco.Params, formP
 		return
 	}
 	defer fileReader.Close()
-
 	filename, mimeType := service.GetMimeType(fid)
 	filename = url.QueryEscape(filename)
 	w.Header().Set("Content-Disposition", "inline;filename=\""+filename+"\"")
